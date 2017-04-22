@@ -25,8 +25,8 @@ $ drush make --no-core ./sites/all/modules/contrib/sharerich/sharerich.make
 The command above will download rrssb into ./sites/all/libraries/rrsb folder.
 
 Alternativelly, you can download rrssb library manually from
-https://github.com/kni-labs/rrssb/releases/tag/v1.6.5 and place it inside ./sites/all/libraries/rrssb folder.
-Sharerich currently supports rrssb version v1.6.5.
+https://github.com/kni-labs/rrssb/releases/tag/v1.6.0 and place it inside ./sites/all/libraries/rrssb folder.
+Sharerich currently supports rrssb version v1.6.0.
 
 Now you can enable Sharerich.
 Go to the permissions page and set them accordingly.
