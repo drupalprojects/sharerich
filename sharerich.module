@@ -245,6 +245,7 @@ function sharerich_get_buttons($sharerich_set, $node = NULL, $machinename = '') 
 
     // Tokens replacements.
     foreach ($buttons as $key => $button) {
+      unset($buttons[$key]['weight']);
       $buttons[$key]['data'] = token_replace($button['data'], array('node' => $node));
     }
   }
