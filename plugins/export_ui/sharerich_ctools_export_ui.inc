@@ -81,7 +81,9 @@ function sharerich_ctools_export_ui_form(&$form, &$form_state) {
 
     $form['available_services']['services'][$service_name]['enabled'] = array(
       '#type' => 'checkbox',
-      '#default_value' => $item->services[$service_name]['enabled'],
+      '#default_value' => isset($item->services[$service_name]['enabled'])
+        ? $item->services[$service_name]['enabled']
+        : 0,
     );
 
     // Store the buttons markup along other data.
@@ -95,7 +97,9 @@ function sharerich_ctools_export_ui_form(&$form, &$form_state) {
       '#type' => 'weight',
       '#title' => t('Weight'),
       '#title_display' => 'invisible',
-      '#default_value' => $item->services[$service_name]['weight'],
+      '#default_value' => isset($item->services[$service_name]['weight'])
+        ? $item->services[$service_name]['weight']
+        : 0,
     );
   }
 
