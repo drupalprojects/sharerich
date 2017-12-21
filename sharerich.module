@@ -38,7 +38,6 @@ function sharerich_libraries_info() {
       'title' => 'Ridiculously Responsive Social Share Buttons',
       'vendor url' => 'http://kurtnoble.com/labs/rrssb/',
       'download url' => 'https://github.com/kni-labs/rrssb',
-      'path' => '',
       'version arguments' => array(
         'file' => 'bower.json',
         'pattern' => '/version"\s*:\s*"([0-9\.]+)",$/',
@@ -50,7 +49,7 @@ function sharerich_libraries_info() {
       ),
       'files' => array(
         'js' => array(
-          'rrssb.js',
+          'js/rrssb.js',
         ),
         'css' => array(
           'css/rrssb.css',
@@ -70,7 +69,7 @@ function sharerich_libraries_info() {
         'source' => array(
           'files' => array(
             'css' => array(
-              'css/rrssb.css',
+              'css/normalize.min.css',
             ),
             'js' => array(
               'js/rrssb.js',
