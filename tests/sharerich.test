@@ -1,0 +1,185 @@
+<?php
+
+/**
+ * Sharerich tests.
+ *
+ * @group sharerich
+ */
+class SharerichTest extends DrupalWebTestCase {
+  protected $profile = 'standard';
+
+  /**
+   * Modules to enable.
+   *
+   * @var array
+   */
+  public $modules = array(
+    'block',
+    'token',
+    'contextual',
+    'node',
+    'field',
+    'text',
+    'sharerich'
+  );
+
+  /**
+   * A user with the 'Administer Sharerich' permission.
+   *
+   * @var object
+   */
+  protected $adminUser;
+
+  /**
+   * List of services to check.
+   */
+  protected $services;
+
+  /**
+   * Info.
+   *
+   * @return array
+   *   The test info
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Sharerich',
+      'description' => 'Test sharerich.',
+      'group' => 'Sharerich',
+    );
+  }
+
+  /**
+   * Setup.
+   */
+  public function setUp() {
+    parent::setUp($this->modules);
+
+    // Services to test.
+    $this->services = array('facebook', 'email', 'twitter');
+
+    // Create admin user.
+    $this->adminUser = $this->drupalCreateUser(array(
+      'access administration pages',
+      'administer sharerich',
+      'administer blocks',
+      'administer modules',
+      'access contextual links',
+    ));
+  }
+
+  /**
+   * Check that an element exists in HTML markup.
+   *
+   * @param       $xpath
+   *   An XPath expression.
+   * @param array $arguments
+   *   (optional) An associative array of XPath replacement tokens to pass to
+   *   DrupalWebTestCase::buildXPathQuery().
+   * @param       $message
+   *   The message to display along with the assertion.
+   * @param       $group
+   *   The type of assertion - examples are "Browser", "PHP".
+   *
+   * @return
+   *   TRUE if the assertion succeeded, FALSE otherwise.
+   */
+  protected function assertElementByXPath($xpath, array $arguments = array(), $message, $group = 'Other') {
+    $elements = $this->xpath($xpath, $arguments);
+
+    return $this->assertTrue(!empty($elements[0]), $message, $group);
+  }
+
+  function testLinkToConfig() {
+    $this->drupalLogin($this->adminUser);
+    $this->drupalGet('admin/modules');
+    $link = $this->xpath('//a[contains(@href, :href) and contains(@id, :id)]', [
+      ':href' => 'admin/structure/sharerich/settings',
+      ':id' => 'edit-modules-sharing-sharerich-links-configure'
+    ]);
+    $this->assertTrue(count($link) === 1, 'Link to config is present');
+  }
+
+  /**
+   * Admin UI.
+   */
+  function testAdminUI() {
+    $this->drupalLogin($this->adminUser);
+    $this->drupalGet('admin/structure/sharerich/list/default_set/edit');
+
+    // Test that the imported set is correct.
+    $element = $this->xpath('//input[@type="text" and @id="edit-name" and @value="Default set"]');
+    $this->assertTrue(count($element) === 1, 'The label is correct.');
+    foreach ($this->services as $item) {
+      // Assert that the checkboxes are ticked.
+      $element = $this->xpath('//input[@type="checkbox" and @name="services[' . $item . '][enabled]" and @checked="checked"]');
+      $this->assertTrue(count($element) === 1, t('The :item is checked.', array(':item' => ucfirst($item))));
+
+      $actual = (string) $this->xpath('//textarea[@name="sharerich_custom_' . $item . '"]/text()')[0];
+      // Normalize strings.
+      $actual = preg_replace('/(\r\n|\r|\n|\s|\t)/s', " ", $actual);
+      $expected = sharerich_load_service($item);
+      $expected = preg_replace('/(\r\n|\r|\n|\s|\t)/s', " ", $expected);
+      $this->assertTrue($actual == $expected, t('The :item widget is correct.', array(':item' => ucfirst($item))));
+    }
+  }
+
+  /**
+   * Test sharerich block.
+   */
+  function testBlock() {
+    $this->drupalLogin($this->adminUser);
+
+    // Configure block.
+    $edit = array(
+      'regions[bartik]' => 'content',
+      'regions[seven]' => 'content',
+    );
+    $this->drupalPost('admin/structure/block/manage/sharerich/default_set/configure', $edit, t('Save block'));
+    //$this->drupalPost('admin/config/development/performance', array(), t('Clear all caches'));
+
+    // Create page.
+    $node = $this->drupalCreateNode(array(
+        'type' => 'page',
+        'title' => 'Sharerich page',
+        'body' => array(LANGUAGE_NONE => array(array($this->randomName(64)))),
+        'promote' => 1
+      )
+    );
+
+    // Visit node.
+    $this->drupalGet('node/' . $node->nid);
+
+    $text = $this->xpath('//div[@id="block-sharerich-default-set"]//h4/text()')[0];
+    $this->assertEqual($text, t('Share this'), 'The title of sharerich block is correct');
+
+//    $element = $this->xpath('//div[contains(@class, "sharerich-wrapper") and contains(@class, "sharerich-vertical") and contains(@class, "sharerich-sticky")]');
+//    $this->assertTrue(!empty($element), 'Found a sticky sharerich block');
+
+    foreach ($this->services as $item) {
+      $text = $this->xpath('//div[@id="block-sharerich-default-set"]//div[@class="item-list"]//ul/li[contains(@class, "' . $item . '")]//span[@class="text"]/text()')[0];
+      $this->assertEqual($text, $item, t('The text of :item button is correct', array(':item' => $item)));
+    }
+
+    // Test that tokens were rendered correctly.
+    $this->assertElementByXPath('//div[@id="block-sharerich-default-set"]//ul/li[contains(@class, :li_class)]/a[contains(@href, :href)]', array(
+      ':li_class' => 'email',
+      ':href' => 'mailto:?subject=Sharerich%20page&body=http',
+    ), "Email Tokens rendered correctly.");
+
+    $this->assertElementByXPath('//div[@id="block-sharerich-default-set"]//ul/li[contains(@class, :li_class)]/a[contains(@href, :href)]', array(
+      ':li_class' => 'facebook',
+      ':href' => 'https://www.facebook.com/sharer/sharer.php?u=http',
+    ), "Facebook Tokens rendered correctly.");
+
+    $this->assertElementByXPath('//div[@id="block-sharerich-default-set"]//ul/li[contains(@class, :li_class)]/a[contains(@href, :href)]', array(
+      ':li_class' => 'twitter',
+      ':href' => 'https://twitter.com/intent/tweet?url=http',
+    ), "Twitter Tokens rendered correctly.");
+
+    $this->assertElementByXPath('//div[@id="block-sharerich-default-set"]//li[contains(@class, :li_class)]/a[contains(@href, :href)]', array(
+      ':li_class' => 'block-configure',
+      ':href' => '/admin/structure/block/manage/sharerich/default_set/configure?destination=node/' . $node->nid,
+    ), "Contextual links is correct.");
+  }
+}
