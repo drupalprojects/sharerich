@@ -127,7 +127,7 @@ function sharerich_install() {
   $default_set = ctools_export_crud_new('sharerich_sets');
   $default_set->name = 'Default set';
   $default_set->machinename = 'default_set';
-  $default_set->title = t('Share This');
+  $default_set->title = t('Share this');
   $default_set->block = TRUE;
 
   module_load_include('module', 'sharerich', 'sharerich');
@@ -190,7 +190,7 @@ function sharerich_update_7200() {
   // Create a new object.
   $imported = (ctools_export_crud_new('sharerich_sets'));
   $imported->machinename = 'imported_set';
-  $imported->title = variable_get('sharerich_title', t('Share This'));
+  $imported->title = variable_get('sharerich_title', t('Share this'));
   $imported->block = TRUE;
 
   // Port legacy services.
