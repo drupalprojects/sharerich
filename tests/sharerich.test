@@ -66,6 +66,9 @@ class SharerichTest extends DrupalWebTestCase {
       'administer modules',
       'access contextual links',
     ));
+
+    // Enable clean urls.
+    variable_set('clean_url', TRUE);
   }
 
   /**
