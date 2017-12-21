@@ -160,7 +160,7 @@ class SharerichTest extends DrupalWebTestCase {
 //    $this->assertTrue(!empty($element), 'Found a sticky sharerich block');
 
     foreach ($this->services as $item) {
-      $text = $this->xpath('//div[@id="block-sharerich-default-set"]//div[@class="item-list"]//ul/li[contains(@class, "' . $item . '")]//span[@class="text"]/text()')[0];
+      $text = $this->xpath('//div[@id="block-sharerich-default-set"]//div[@class="item-list"]//ul/li[contains(@class, "' . $item . '")]//span[@class="rrssb-text"]/text()')[0];
       $this->assertEqual($text, $item, t('The text of :item button is correct', array(':item' => $item)));
     }
 
